@@ -1,18 +1,14 @@
-# Harsh Kumar Singh — Portfolio (Elegant Concept)
+# Portfolio Tower — 3D monolith concept
 
-A minimal, quiet, elegant, premium portfolio concept — light editorial theme, whisper-soft motion. Fully separate from the "Dark and neon" concept.
+A quiet, premium, single-viewport 3D experience for Harsh Kumar Singh's portfolio — a dark hexagonal tower the visitor spins with scroll or drag, with four clickable project levels.
 
-**Stack:** Vite + React + Tailwind CSS v4 + GSAP (ScrollTrigger) + Lenis smooth scrolling.
+**Stack:** Vite + React + Tailwind CSS v4 + three.js (`@react-three/fiber` / `@react-three/drei`) + GSAP.
 
-## Design
+## Interaction
 
-- Palette: paper `#f3efe7`, ink `#191713`, muted `#6f6a5e`, hairline `#ddd5c4`, bronze `#9a7b4f` (sparingly)
-- Type: Fraunces (serif headlines) + Inter (body/labels), loaded via Google Fonts in CSS
-- Sections: quiet loader → fixed nav → editorial hero → work index (4 projects, cursor-follow preview) → about → contact footer with live Noida clock
-
-## Editing the words
-
-Every word on the site lives in **`src/content.js`** — change text between the quotes, commit, and the site rebuilds itself in 2–3 minutes.
+- **Scroll / drag** — rotates the tower (damped). After 6s idle it drifts very slowly on its own.
+- **Click a level** — the tower turns that project to face you, the camera dollies in, and a detail panel slides in (right side on desktop, bottom sheet on mobile). Escape or Close dismisses it.
+- Every word lives in **`src/content.js`** — edit text between the quotes, commit, rebuild.
 
 ## Development
 
@@ -21,12 +17,8 @@ npm install
 npm run dev
 ```
 
-## Build & deploy
+## Build
 
 ```bash
 npm run build   # outputs to dist/
 ```
-
-`vite.config.js` uses `base: './'` so the build works on a GitHub Pages subpath. To publish: push to a repo, add a Pages deploy workflow, set Pages source to GitHub Actions.
-
-Project artwork loads from the artist's own Behance CDN ([behance.net/harsh19_](https://www.behance.net/harsh19_)).
