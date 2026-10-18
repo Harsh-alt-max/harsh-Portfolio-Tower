@@ -11,7 +11,14 @@ export const site = {
   behanceUrl: "https://www.behance.net/harsh19_",
   role: "Motion Designer — Noida",
   loader: "HARSH KUMAR SINGH",
-  hint: "Scroll to rotate · Click a level",
+  hint: "Scroll to spin · Click to explore",
+  ringText: "HARSH KUMAR SINGH · MOTION DESIGNER · ",
+};
+
+export const contact = {
+  kicker: "Contact",
+  title: "Have an idea in motion?",
+  cta: "Behance ↗",
 };
 
 export const projects = [

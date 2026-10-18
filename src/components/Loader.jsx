@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { site } from "../content";
 
-/** Quiet dark loader: name fades in, thin bronze bar, fades out. */
+/** Quiet ivory loader: letterspaced serif name, thin champagne bar, fades out. */
 export default function Loader({ onDone }) {
   const root = useRef();
   const bar = useRef();
@@ -18,14 +18,14 @@ export default function Loader({ onDone }) {
       .fromTo(
         bar.current,
         { scaleX: 0 },
-        { scaleX: 1, duration: 1.3, ease: "power2.inOut" },
+        { scaleX: 1, duration: 1.2, ease: "power2.inOut" },
         "-=0.5"
       )
-      .to(word.current, {
-        opacity: 0,
-        duration: 0.5,
-        ease: "power2.in",
-      }, "+=0.15")
+      .to(
+        word.current,
+        { opacity: 0, duration: 0.5, ease: "power2.in" },
+        "+=0.15"
+      )
       .to(root.current, {
         opacity: 0,
         duration: 0.7,
@@ -37,15 +37,15 @@ export default function Loader({ onDone }) {
   return (
     <div
       ref={root}
-      className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#0e0e10]"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#f2ede2]"
     >
       <p
         ref={word}
-        className="font-serif text-xl tracking-[0.4em] text-[#ece7db] md:text-2xl"
+        className="font-serif text-xl tracking-[0.4em] text-[#211d16] md:text-2xl"
       >
         {site.loader}
       </p>
-      <div className="mt-8 h-px w-48 bg-white/10">
+      <div className="mt-8 h-px w-48 bg-[#211d16]/10">
         <div ref={bar} className="h-full w-full origin-left bg-[#c9a06a]" />
       </div>
     </div>

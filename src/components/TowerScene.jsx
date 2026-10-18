@@ -1,344 +1,413 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { gsap } from "gsap";
-import { projects } from "../content";
+import { projects, site } from "../content";
 
-const BRONZE = "#c9a06a";
 const TAU = Math.PI * 2;
+const INK = "#211d16";
+const IVORY = "#f6f2e8";
+const CHAMPAGNE = "#c9a06a";
 
 /* ------------------------------------------------------------------ */
-/* Tower geometry                                                       */
+/* Sky: custom gradient dome — warm ivory horizon → pale cerulean zenith */
 /* ------------------------------------------------------------------ */
-const TOWER_H = 7;
-const R_BOTTOM = 2.0;
-const R_TOP = 1.6;
-const radiusAt = (y) =>
-  R_BOTTOM - ((y + TOWER_H / 2) / TOWER_H) * (R_BOTTOM - R_TOP);
-
-// one level per project, 90° apart around the tower
-const LEVELS = [2.4, 0.8, -0.8, -2.4].map((y, i) => ({
-  index: i,
-  y,
-  angle: i * (Math.PI / 2),
-}));
-
-/* ------------------------------------------------------------------ */
-/* Canvas-drawn label: small ivory serif, engraved not glowing         */
-/* ------------------------------------------------------------------ */
-function makeLabelTexture(index, title) {
-  const c = document.createElement("canvas");
-  const pad = 48;
-  const measure = c.getContext("2d");
-  const titleFont = "300 64px Fraunces, Georgia, serif";
-  measure.font = titleFont;
-  const tw = Math.ceil(measure.measureText(title.toUpperCase()).width);
-  c.width = tw + pad * 2;
-  c.height = 176;
-
-  const ctx = c.getContext("2d");
-  ctx.clearRect(0, 0, c.width, c.height);
-  ctx.textBaseline = "middle";
-
-  ctx.font = "500 26px Inter, system-ui, sans-serif";
-  ctx.fillStyle = "rgba(236,233,223,0.55)";
-  ctx.fillText(`0${index + 1}`, pad, 32);
-
-  ctx.fillStyle = "rgba(236,233,223,0.28)";
-  ctx.fillRect(pad, 54, 40, 1.5);
-
-  ctx.font = titleFont;
-  ctx.fillStyle = "#ece9df";
-  ctx.fillText(title.toUpperCase(), pad, 118);
-
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 8;
-  return { tex, aspect: c.width / c.height };
-}
-
-function LevelLabel({ index, title, y, angle }) {
-  const { tex, aspect } = useMemo(
-    () => makeLabelTexture(index, title),
-    [index, title]
+function SkyDome() {
+  const mat = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        side: THREE.BackSide,
+        depthWrite: false,
+        fog: false,
+        vertexShader: `
+          varying vec3 vDir;
+          void main() {
+            vDir = normalize(position);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          varying vec3 vDir;
+          void main() {
+            float h = vDir.y;
+            vec3 zenith  = vec3(0.737, 0.827, 0.878); // #bcd3e0
+            vec3 horizon = vec3(0.949, 0.929, 0.886); // #f2ede2
+            vec3 below   = vec3(0.918, 0.878, 0.812);
+            vec3 col = h >= 0.0
+              ? mix(horizon, zenith, smoothstep(0.0, 0.7, h))
+              : mix(horizon, below, smoothstep(0.0, -0.4, h));
+            // faint warm glow hugging the horizon
+            col += vec3(0.030, 0.015, 0.0) * (1.0 - smoothstep(0.0, 0.35, abs(h)));
+            gl_FragColor = vec4(col, 1.0);
+          }
+        `,
+      }),
+    []
   );
-  useEffect(() => () => tex.dispose(), [tex]);
-  const r = radiusAt(y) + 0.62;
-  const h = 0.42;
+  useEffect(() => () => mat.dispose(), [mat]);
   return (
-    <mesh
-      position={[Math.sin(angle) * r, y, Math.cos(angle) * r]}
-      rotation={[0, angle, 0]}
-    >
-      <planeGeometry args={[h * aspect, h]} />
-      <meshBasicMaterial map={tex} transparent depthWrite={false} />
+    <mesh material={mat} renderOrder={-10}>
+      <sphereGeometry args={[60, 32, 24]} />
     </mesh>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Drifting dust motes                                                  */
+/* Clouds: soft white canvas-sprite puffs, slow drift                   */
 /* ------------------------------------------------------------------ */
-function Dust({ count = 250 }) {
-  const ref = useRef();
-  const { positions, speeds } = useMemo(() => {
-    const positions = new Float32Array(count * 3);
-    const speeds = new Float32Array(count);
-    for (let i = 0; i < count; i++) {
-      const r = 4 + Math.random() * 9;
-      const a = Math.random() * TAU;
-      positions[i * 3] = Math.cos(a) * r;
-      positions[i * 3 + 1] = -4 + Math.random() * 10;
-      positions[i * 3 + 2] = Math.sin(a) * r;
-      speeds[i] = 0.05 + Math.random() * 0.12;
-    }
-    return { positions, speeds };
-  }, [count]);
-
-  useFrame((_, dtRaw) => {
-    const dt = Math.min(dtRaw, 0.05);
-    const attr = ref.current.geometry.attributes.position;
-    for (let i = 0; i < count; i++) {
-      let y = attr.getY(i) + speeds[i] * dt;
-      if (y > 6) y = -4;
-      attr.setY(i, y);
-    }
-    attr.needsUpdate = true;
-  });
-
-  return (
-    <points ref={ref}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-      </bufferGeometry>
-      <pointsMaterial
-        size={0.035}
-        color="#9a8f7a"
-        transparent
-        opacity={0.28}
-        sizeAttenuation
-        depthWrite={false}
-      />
-    </points>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Crown ring with a slow pulse                                         */
-/* ------------------------------------------------------------------ */
-function Crown() {
-  const mat = useRef();
-  useFrame(({ clock }) => {
-    if (mat.current)
-      mat.current.opacity = 0.42 + Math.sin(clock.elapsedTime * 1.2) * 0.14;
-  });
-  return (
-    <mesh position={[0, 3.62, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <torusGeometry args={[1.45, 0.022, 12, 72]} />
-      <meshBasicMaterial ref={mat} color={BRONZE} transparent opacity={0.5} />
-    </mesh>
-  );
-}
-
-function makeGlowTexture() {
+function makePuffTexture() {
   const c = document.createElement("canvas");
   c.width = c.height = 256;
-  const ctx = c.getContext("2d");
-  const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-  g.addColorStop(0, "rgba(201,160,106,0.2)");
-  g.addColorStop(0.5, "rgba(201,160,106,0.06)");
-  g.addColorStop(1, "rgba(201,160,106,0)");
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 256, 256);
+  const x = c.getContext("2d");
+  const blobs = [
+    [128, 150, 90],
+    [90, 160, 60],
+    [170, 160, 65],
+    [128, 120, 55],
+    [70, 140, 40],
+    [190, 140, 42],
+  ];
+  for (const [bx, by, br] of blobs) {
+    const g = x.createRadialGradient(bx, by, 0, bx, by, br);
+    g.addColorStop(0, "rgba(255,255,255,0.85)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    x.fillStyle = g;
+    x.beginPath();
+    x.arc(bx, by, br, 0, TAU);
+    x.fill();
+  }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
 
+function Clouds({ count = 14 }) {
+  const group = useRef();
+  const tex = useMemo(makePuffTexture, []);
+  useEffect(() => () => tex.dispose(), [tex]);
+  const items = useMemo(
+    () =>
+      Array.from({ length: count }, (_, i) => {
+        const a = (i / count) * TAU + Math.random() * 0.6;
+        const r = 10 + Math.random() * 12;
+        return {
+          x: Math.cos(a) * r,
+          y: -5 + Math.random() * 14,
+          z: Math.sin(a) * r,
+          s: 6 + Math.random() * 7,
+          o: 0.28 + Math.random() * 0.35,
+          v: 0.08 + Math.random() * 0.15,
+        };
+      }),
+    [count]
+  );
+  useFrame((_, dtRaw) => {
+    const dt = Math.min(dtRaw, 0.05);
+    const kids = group.current?.children;
+    if (!kids) return;
+    for (let i = 0; i < kids.length; i++) {
+      const sp = kids[i];
+      sp.position.x += items[i].v * dt;
+      if (sp.position.x > 26) sp.position.x = -26;
+    }
+  });
+  return (
+    <group ref={group}>
+      {items.map((c, i) => (
+        <sprite key={i} position={[c.x, c.y, c.z]} scale={[c.s, c.s * 0.55, 1]}>
+          <spriteMaterial
+            map={tex}
+            transparent
+            opacity={c.o}
+            depthWrite={false}
+            fog={false}
+          />
+        </sprite>
+      ))}
+    </group>
+  );
+}
+
 /* ------------------------------------------------------------------ */
-/* Camera handle for GSAP dolly tweens                                   */
+/* Billboard canvas texture: ivory gallery signage, serif title         */
 /* ------------------------------------------------------------------ */
-function CameraRig({ cameraRef }) {
+function fitTitle(ctx, title, maxW, baseSize) {
+  const words = title.split(" ");
+  const measure = (s) => {
+    ctx.font = `300 ${s}px Fraunces, Georgia, serif`;
+  };
+  let size = baseSize;
+  const twoLine = (s) => {
+    measure(s);
+    for (let i = 1; i < words.length; i++) {
+      const a = words.slice(0, i).join(" ");
+      const b = words.slice(i).join(" ");
+      if (ctx.measureText(a).width <= maxW && ctx.measureText(b).width <= maxW)
+        return [a, b];
+    }
+    return null;
+  };
+  let split = twoLine(size);
+  while (!split && size > 58) {
+    size -= 6;
+    split = twoLine(size);
+  }
+  const lines = split || [title];
+  measure(size);
+  while (ctx.measureText(lines[0]).width > maxW && size > 46) {
+    size -= 4;
+    measure(size);
+  }
+  return { lines, size };
+}
+
+function makeBillboardTexture(p) {
+  const W = 1024;
+  const H = 752;
+  const c = document.createElement("canvas");
+  c.width = W;
+  c.height = H;
+  const x = c.getContext("2d");
+
+  x.fillStyle = IVORY;
+  x.fillRect(0, 0, W, H);
+  // faint top light
+  const g = x.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "rgba(255,255,255,0.28)");
+  g.addColorStop(0.5, "rgba(255,255,255,0)");
+  x.fillStyle = g;
+  x.fillRect(0, 0, W, H);
+
+  // hairline double frame
+  x.strokeStyle = "rgba(33,29,22,0.38)";
+  x.lineWidth = 2;
+  x.strokeRect(30, 30, W - 60, H - 60);
+  x.strokeStyle = "rgba(201,160,106,0.55)";
+  x.lineWidth = 1;
+  x.strokeRect(38, 38, W - 76, H - 76);
+
+  try {
+    x.letterSpacing = "8px";
+  } catch {
+    /* older canvas */
+  }
+  x.fillStyle = "#6f6a5e";
+  x.font = "500 30px Inter, system-ui, sans-serif";
+  x.textBaseline = "alphabetic";
+  x.fillText(p.index, 84, 128);
+  try {
+    x.letterSpacing = "0px";
+  } catch {
+    /* older canvas */
+  }
+
+  const { lines, size } = fitTitle(x, p.title, W - 168, 96);
+  x.fillStyle = INK;
+  const lh = size * 1.14;
+  lines.forEach((ln, i) => x.fillText(ln, 84, 300 + i * lh));
+
+  // champagne rule + tag line
+  x.fillStyle = "rgba(201,160,106,0.85)";
+  x.fillRect(84, H - 148, 64, 3);
+  try {
+    x.letterSpacing = "6px";
+  } catch {
+    /* older canvas */
+  }
+  x.fillStyle = "#8a8474";
+  x.font = "500 26px Inter, system-ui, sans-serif";
+  x.fillText(p.tags.join(" · ").toUpperCase(), 84, H - 100);
+  try {
+    x.letterSpacing = "0px";
+  } catch {
+    /* older canvas */
+  }
+
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
+/* ------------------------------------------------------------------ */
+/* Upper-ring texture: repeating serif text wrapping 360°              */
+/* ------------------------------------------------------------------ */
+function makeRingTexture() {
+  const W = 2048;
+  const H = 160;
+  const c = document.createElement("canvas");
+  c.width = W;
+  c.height = H;
+  const x = c.getContext("2d");
+  x.fillStyle = "#ded7c2";
+  x.fillRect(0, 0, W, H);
+  x.fillStyle = "#3a342a";
+  x.font = "300 64px Fraunces, Georgia, serif";
+  try {
+    x.letterSpacing = "10px";
+  } catch {
+    /* older canvas */
+  }
+  x.textBaseline = "middle";
+  const unit = site.ringText;
+  const uw = x.measureText(unit).width;
+  const reps = Math.ceil(W / uw) + 1;
+  let dx = 0;
+  for (let i = 0; i < reps; i++) {
+    x.fillText(unit, dx, H / 2 + 2);
+    dx += uw;
+  }
+  x.fillStyle = "rgba(201,160,106,0.7)";
+  x.fillRect(0, 10, W, 2);
+  x.fillRect(0, H - 12, W, 2);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = THREE.RepeatWrapping;
+  t.anisotropy = 8;
+  return t;
+}
+
+/* ------------------------------------------------------------------ */
+/* Scroll-driven camera: keyframed journey up the tower                */
+/* ------------------------------------------------------------------ */
+const CAM_KEYS = [
+  { p: 0.0, pos: [0, -1.5, 13], look: [0, 0.5, 0] },
+  { p: 0.5, pos: [0, 2.0, 12], look: [0, 1.9, 0] },
+  { p: 1.0, pos: [0, 5.8, 11], look: [0, 4.6, 0] },
+];
+
+function camAt(p) {
+  let a = CAM_KEYS[0];
+  let b = CAM_KEYS[CAM_KEYS.length - 1];
+  for (let i = 0; i < CAM_KEYS.length - 1; i++) {
+    if (p >= CAM_KEYS[i].p && p <= CAM_KEYS[i + 1].p) {
+      a = CAM_KEYS[i];
+      b = CAM_KEYS[i + 1];
+      break;
+    }
+  }
+  const t = (p - a.p) / Math.max(1e-6, b.p - a.p);
+  const lerp3 = (u, v) => [
+    u[0] + (v[0] - u[0]) * t,
+    u[1] + (v[1] - u[1]) * t,
+    u[2] + (v[2] - u[2]) * t,
+  ];
+  return { pos: lerp3(a.pos, b.pos), look: lerp3(a.look, b.look) };
+}
+
+function CameraRig({ scrollRef }) {
   const { camera } = useThree();
+  const lookSm = useRef(new THREE.Vector3(0, 0.5, 0));
   useEffect(() => {
-    cameraRef.current = camera;
-    camera.lookAt(0, 1.2, 0);
-  }, [camera, cameraRef]);
+    camera.position.set(0, -1.5, 13);
+    camera.lookAt(0, 0.5, 0);
+  }, [camera]);
+  useFrame((_, dtRaw) => {
+    const dt = Math.min(dtRaw, 0.05);
+    const { pos, look } = camAt(scrollRef.current.p);
+    const k = 1 - Math.exp(-dt * 3.2);
+    camera.position.x += (pos[0] - camera.position.x) * k;
+    camera.position.y += (pos[1] - camera.position.y) * k;
+    camera.position.z += (pos[2] - camera.position.z) * k;
+    lookSm.current.x += (look[0] - lookSm.current.x) * k;
+    lookSm.current.y += (look[1] - lookSm.current.y) * k;
+    lookSm.current.z += (look[2] - lookSm.current.z) * k;
+    camera.lookAt(lookSm.current);
+  });
   return null;
 }
 
 /* ------------------------------------------------------------------ */
-/* The tower: rotation, levels, interaction                             */
+/* The tower — spire, dome, text ring, pod with billboards, ribbed shaft */
 /* ------------------------------------------------------------------ */
-function Tower({ selected, onSelect, onFirstInteract, cameraRef, wrapRef }) {
+const THETA_LEN = 1.15; // billboard arc (~66°)
+
+function Tower({ fontsReady, onSelect, scrollRef }) {
   const group = useRef();
-  const target = useRef(0.6); // rest angle: turned slightly for depth
-  const lastTouch = useRef(0);
-  const dragging = useRef(false);
-  const lastX = useRef(0);
-  const movedFar = useRef(false);
-  const suppressClick = useRef(false);
-  const glowTex = useMemo(makeGlowTexture, []);
 
-  const poke = () => {
-    lastTouch.current = performance.now();
-    onFirstInteract();
-  };
+  const billboardTex = useMemo(
+    () => (fontsReady ? projects.map(makeBillboardTexture) : []),
+    [fontsReady]
+  );
+  useEffect(() => () => billboardTex.forEach((t) => t.dispose()), [billboardTex]);
+  const ringTex = useMemo(
+    () => (fontsReady ? makeRingTexture() : null),
+    [fontsReady]
+  );
+  useEffect(() => () => ringTex?.dispose(), [ringTex]);
 
-  // face the selected level toward the camera + dolly in
-  useEffect(() => {
-    if (selected == null) {
-      if (cameraRef.current)
-        gsap.to(cameraRef.current.position, {
-          x: 0,
-          y: 1.6,
-          z: 11,
-          duration: 1.4,
-          ease: "power3.inOut",
-        });
-      return;
-    }
-    const lvl = LEVELS[selected];
-    const desired = -lvl.angle;
-    const cur = target.current;
-    const delta = ((((desired - cur + Math.PI) % TAU) + TAU) % TAU) - Math.PI;
-    gsap.to(target, {
-      current: cur + delta,
-      duration: 1.5,
-      ease: "power3.inOut",
-    });
-    if (cameraRef.current)
-      gsap.to(cameraRef.current.position, {
-        x: 0,
-        y: 1.45,
-        z: 8.6,
-        duration: 1.5,
-        ease: "power3.inOut",
-      });
-  }, [selected, cameraRef]);
-
-  // wheel + horizontal drag rotate the tower (native listeners on wrapper)
-  useEffect(() => {
-    const el = wrapRef.current;
-    if (!el) return;
-
-    const onWheel = (e) => {
-      e.preventDefault();
-      poke();
-      target.current += e.deltaY * 0.0016;
-    };
-
-    const onPointerDown = (e) => {
-      dragging.current = true;
-      movedFar.current = false;
-      lastX.current = e.clientX;
-      el.setPointerCapture(e.pointerId);
-      el.style.cursor = "grabbing";
-    };
-    const onPointerMove = (e) => {
-      if (!dragging.current) return;
-      const dx = e.clientX - lastX.current;
-      lastX.current = e.clientX;
-      if (Math.abs(dx) > 2) movedFar.current = true;
-      if (dx !== 0) {
-        poke();
-        target.current += dx * 0.005;
-      }
-    };
-    const onPointerUp = () => {
-      dragging.current = false;
-      el.style.cursor = "grab";
-      if (movedFar.current) {
-        // a drag just ended — swallow the click that follows it
-        suppressClick.current = true;
-        setTimeout(() => {
-          suppressClick.current = false;
-        }, 80);
-      }
-      movedFar.current = false;
-    };
-
-    el.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("pointerdown", onPointerDown);
-    el.addEventListener("pointermove", onPointerMove);
-    el.addEventListener("pointerup", onPointerUp);
-    el.addEventListener("pointercancel", onPointerUp);
-    return () => {
-      el.removeEventListener("wheel", onWheel);
-      el.removeEventListener("pointerdown", onPointerDown);
-      el.removeEventListener("pointermove", onPointerMove);
-      el.removeEventListener("pointerup", onPointerUp);
-      el.removeEventListener("pointercancel", onPointerUp);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wrapRef]);
-
+  // rotation: slow drift + scroll velocity adds spin, damped
   useFrame((_, dtRaw) => {
     const dt = Math.min(dtRaw, 0.05);
+    const s = scrollRef.current;
+    s.spin += dt * 0.06;
     const g = group.current;
     if (!g) return;
-    const idle =
-      performance.now() - lastTouch.current > 6000 &&
-      selected == null &&
-      !dragging.current;
-    if (idle) target.current += dt * 0.07; // very slow drift
-    const d = target.current - g.rotation.y;
-    g.rotation.y += d * (1 - Math.exp(-dt * 4.5));
+    const delta = s.spin - g.rotation.y;
+    g.rotation.y += delta * (1 - Math.exp(-dt * 3.2));
   });
 
-  const handleLevelClick = (e, i) => {
+  const handleClick = (e, i) => {
     e.stopPropagation();
-    if (suppressClick.current) return;
-    poke();
     onSelect(i);
   };
 
   return (
-    <>
-      <group ref={group}>
-        {/* monolith — matte architectural stone, not glossy metal */}
-        <mesh>
-          <cylinderGeometry args={[R_TOP, R_BOTTOM, TOWER_H, 6, 1]} />
-          <meshStandardMaterial
-            color="#17171a"
-            roughness={0.6}
-            metalness={0.3}
-            flatShading
-          />
+    <group ref={group}>
+      {/* shaft: long slender, tapered, runs out of frame below */}
+      <mesh position={[0, -3.5, 0]}>
+        <cylinderGeometry args={[0.42, 0.55, 7, 24]} />
+        <meshStandardMaterial color="#ddd8ca" roughness={0.85} metalness={0.05} />
+      </mesh>
+      {/* vertical ribs */}
+      {Array.from({ length: 20 }).map((_, i) => {
+        const a = (i / 20) * TAU;
+        return (
+          <mesh
+            key={i}
+            position={[Math.sin(a) * 0.53, -3.5, Math.cos(a) * 0.53]}
+            rotation={[0, a, 0]}
+          >
+            <boxGeometry args={[0.045, 6.7, 0.035]} />
+            <meshStandardMaterial color="#cfc8b4" roughness={0.9} />
+          </mesh>
+        );
+      })}
+
+      {/* collar: tapered transition into the pod */}
+      <mesh position={[0, 0.45, 0]}>
+        <cylinderGeometry args={[1.5, 0.42, 0.9, 32]} />
+        <meshStandardMaterial color="#e0dac8" roughness={0.8} metalness={0.05} />
+      </mesh>
+
+      {/* pod drum */}
+      <mesh position={[0, 1.8, 0]}>
+        <cylinderGeometry args={[1.7, 1.7, 1.8, 48]} />
+        <meshStandardMaterial color="#e8e3d4" roughness={0.8} metalness={0.05} />
+      </mesh>
+      {/* champagne hairlines, pod top + bottom */}
+      {[0.9, 2.7].map((y) => (
+        <mesh key={y} position={[0, y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1.7, 0.028, 12, 72]} />
+          <meshBasicMaterial color={CHAMPAGNE} transparent opacity={0.8} />
         </mesh>
+      ))}
 
-        {/* faint seams at the hexagon vertices — barely there */}
-        {[0, 1, 2, 3, 4, 5].map((k) => (
-          <group key={k} rotation={[0, (k * Math.PI) / 3, 0]}>
-            <mesh position={[0, 0, 1.8]} rotation={[-0.0571, 0, 0]}>
-              <boxGeometry args={[0.03, 6.9, 0.03]} />
-              <meshBasicMaterial color="#4a3f30" transparent opacity={0.55} />
-            </mesh>
-          </group>
-        ))}
-
-        {/* project levels */}
-        {LEVELS.map((lvl) => {
-          const p = projects[lvl.index];
-          const r = radiusAt(lvl.y);
+      {/* billboards: gallery signage wrapped on the pod */}
+      {fontsReady &&
+        projects.map((p, i) => {
+          const thetaStart = i * (Math.PI / 2) - THETA_LEN / 2;
           return (
-            <group key={lvl.index}>
-              {/* thin bronze ring band — the one sanctioned accent */}
-              <mesh position={[0, lvl.y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-                <torusGeometry args={[r + 0.05, 0.016, 12, 72]} />
-                <meshBasicMaterial color={BRONZE} transparent opacity={0.75} />
+            <group key={p.index}>
+              <mesh position={[0, 1.8, 0]}>
+                <cylinderGeometry
+                  args={[1.78, 1.78, 1.5, 24, 1, true, thetaStart, THETA_LEN]}
+                />
+                <meshStandardMaterial map={billboardTex[i]} roughness={0.85} />
               </mesh>
-              {/* floating title */}
-              <LevelLabel
-                index={lvl.index}
-                title={p.title}
-                y={lvl.y}
-                angle={lvl.angle}
-              />
               {/* generous invisible hit band */}
               <mesh
-                position={[0, lvl.y, 0]}
-                onClick={(e) => handleLevelClick(e, lvl.index)}
+                position={[0, 1.8, 0]}
+                onClick={(e) => handleClick(e, i)}
                 onPointerOver={() => {
                   document.body.style.cursor = "pointer";
                 }}
@@ -347,74 +416,95 @@ function Tower({ selected, onSelect, onFirstInteract, cameraRef, wrapRef }) {
                 }}
               >
                 <cylinderGeometry
-                  args={[r + 0.42, r + 0.42, 1.2, 24, 1, true]}
+                  args={[
+                    1.9, 1.9, 1.7, 24, 1, true,
+                    thetaStart - 0.06,
+                    THETA_LEN + 0.12,
+                  ]}
                 />
                 <meshBasicMaterial
                   transparent
                   opacity={0}
                   depthWrite={false}
+                  colorWrite={false}
                 />
               </mesh>
             </group>
           );
         })}
 
-        <Crown />
-      </group>
+      {/* upper ring with repeating serif text */}
+      {fontsReady && (
+        <mesh position={[0, 2.925, 0]}>
+          <cylinderGeometry args={[1.15, 1.15, 0.45, 48, 1, true]} />
+          <meshStandardMaterial map={ringTex} roughness={0.85} />
+        </mesh>
+      )}
+      {[2.7, 3.15].map((y) => (
+        <mesh key={y} position={[0, y, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[1.15, 0.024, 12, 72]} />
+          <meshBasicMaterial color={CHAMPAGNE} transparent opacity={0.8} />
+        </mesh>
+      ))}
 
-      {/* base platform + glow (static, outside the rotating group) */}
-      <mesh position={[0, -3.62, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[3.4, 64]} />
-        <meshStandardMaterial color="#0e0e10" roughness={0.9} metalness={0.1} />
+      {/* dome cap */}
+      <mesh position={[0, 3.15, 0]} scale={[1, 0.65, 1]}>
+        <sphereGeometry args={[1.15, 48, 24, 0, TAU, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#e8e3d4" roughness={0.75} metalness={0.05} />
       </mesh>
-      <sprite position={[0, -3.3, 0]} scale={[9, 9, 1]}>
-        <spriteMaterial
-          map={glowTex}
-          transparent
-          depthWrite={false}
-          opacity={0.5}
-        />
-      </sprite>
 
-      <Dust />
-    </>
+      {/* spire + champagne tip */}
+      <mesh position={[0, 4.95, 0]}>
+        <cylinderGeometry args={[0.045, 0.06, 2.1, 12]} />
+        <meshStandardMaterial color="#cfc8b4" roughness={0.7} />
+      </mesh>
+      <mesh position={[0, 6.03, 0]}>
+        <sphereGeometry args={[0.085, 16, 16]} />
+        <meshBasicMaterial color={CHAMPAGNE} />
+      </mesh>
+    </group>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Scene: canvas, lights, fog                                           */
+/* Scene                                                               */
 /* ------------------------------------------------------------------ */
-export default function TowerScene({ selected, onSelect, onFirstInteract }) {
-  const wrapRef = useRef();
-  const cameraRef = useRef(null);
+export default function TowerScene({ fontsReady, onSelect }) {
+  const scrollRef = useRef({ y: 0, p: 0, spin: 0.6, lastY: 0 });
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, Math.max(0, y / max)) : 0;
+      const dy = y - scrollRef.current.lastY;
+      scrollRef.current.lastY = y;
+      scrollRef.current.y = y;
+      scrollRef.current.p = p;
+      // scroll energy spins the tower — 1:1 with scroll feel
+      scrollRef.current.spin += Math.abs(dy) * 0.0011;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <div
-      ref={wrapRef}
-      className="absolute inset-0 touch-none select-none"
-      style={{ cursor: "grab" }}
-    >
+    <div className="absolute inset-0 select-none">
       <Canvas
         dpr={[1, 1.75]}
-        camera={{ position: [0, 1.6, 11], fov: 42 }}
+        camera={{ position: [0, -1.5, 13], fov: 40 }}
         gl={{ antialias: true }}
       >
-        <fog attach="fog" args={["#0e0e10", 13, 26]} />
-        <ambientLight intensity={0.3} />
-        <directionalLight position={[5, 8, 6]} intensity={1.0} color="#ffd9a8" />
-        <directionalLight
-          position={[-6, 3, -5]}
-          intensity={0.5}
-          color="#7a8cff"
-        />
-        <CameraRig cameraRef={cameraRef} />
-        <Tower
-          selected={selected}
-          onSelect={onSelect}
-          onFirstInteract={onFirstInteract}
-          cameraRef={cameraRef}
-          wrapRef={wrapRef}
-        />
+        <fog attach="fog" args={["#e9e0cd", 18, 42]} />
+        <ambientLight intensity={0.55} color="#fff6e8" />
+        <hemisphereLight args={["#cfe0ea", "#f2ede2", 0.5]} />
+        <directionalLight position={[6, 10, 5]} intensity={1.5} color="#ffe9c8" />
+        <directionalLight position={[-5, 4, -6]} intensity={0.35} color="#bcd3e0" />
+        <SkyDome />
+        <Clouds />
+        <CameraRig scrollRef={scrollRef} />
+        <Tower fontsReady={fontsReady} onSelect={onSelect} scrollRef={scrollRef} />
       </Canvas>
     </div>
   );
