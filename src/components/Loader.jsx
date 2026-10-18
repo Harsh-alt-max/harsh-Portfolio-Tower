@@ -1,37 +1,53 @@
 import { useEffect, useRef } from "react";
-import { gsap } from "../lib/gsap";
-import { loader } from "../content";
+import { gsap } from "gsap";
+import { site } from "../content";
 
-/** Quiet paper loader: the name fades in, holds a beat, fades out. ~1.2s. */
+/** Quiet dark loader: name fades in, thin bronze bar, fades out. */
 export default function Loader({ onDone }) {
-  const rootRef = useRef(null);
-  const nameRef = useRef(null);
+  const root = useRef();
+  const bar = useRef();
+  const word = useRef();
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ onComplete: onDone });
-      tl.fromTo(
-        nameRef.current,
-        { opacity: 0, y: 14 },
-        { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }
+    const tl = gsap.timeline({ onComplete: onDone });
+    tl.fromTo(
+      word.current,
+      { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 0.9, ease: "power2.out" }
+    )
+      .fromTo(
+        bar.current,
+        { scaleX: 0 },
+        { scaleX: 1, duration: 1.3, ease: "power2.inOut" },
+        "-=0.5"
       )
-        .to(nameRef.current, { opacity: 0, y: -10, duration: 0.4, ease: "power2.in" }, "+=0.35")
-        .to(rootRef.current, { opacity: 0, duration: 0.45, ease: "power1.out" }, "-=0.1");
-    }, rootRef);
-    return () => ctx.revert();
+      .to(word.current, {
+        opacity: 0,
+        duration: 0.5,
+        ease: "power2.in",
+      }, "+=0.15")
+      .to(root.current, {
+        opacity: 0,
+        duration: 0.7,
+        ease: "power2.inOut",
+      });
+    return () => tl.kill();
   }, [onDone]);
 
   return (
     <div
-      ref={rootRef}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-paper"
+      ref={root}
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#0e0e10]"
     >
       <p
-        ref={nameRef}
-        className="font-serif text-2xl font-light tracking-wide opacity-0 md:text-3xl"
+        ref={word}
+        className="font-serif text-xl tracking-[0.4em] text-[#ece7db] md:text-2xl"
       >
-        {loader.name}
+        {site.loader}
       </p>
+      <div className="mt-8 h-px w-48 bg-white/10">
+        <div ref={bar} className="h-full w-full origin-left bg-[#c9a06a]" />
+      </div>
     </div>
   );
 }
