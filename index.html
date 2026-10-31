@@ -1,12 +1,381 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Harsh Kumar Singh — Motion Designer</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Harsh Kumar Singh — Motion Designer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper:#fafaf6; --ink:#111111; --line:#111111; --muted:#5c5c5c;
+    --red:#e5484d; --yellow:#ffd23f; --mint:#a8e6cf; --pink:#ff6fa5;
+    --blue:#2b6cff; --green:#3ecf6e; --navy:#101014;
+    --grid:rgba(0,0,0,.055); --navbg:rgba(250,250,246,.92); --cardline:rgba(0,0,0,.85);
+    --framebg:rgba(255,255,255,.55);
+  }
+  [data-theme="dark"]{
+    --paper:#161513; --ink:#f2ede2; --line:#f2ede2; --muted:#b8b2a2;
+    --grid:rgba(255,255,255,.07); --navbg:rgba(22,21,19,.92); --cardline:rgba(242,226,210,.85);
+    --framebg:rgba(255,255,255,.05); --navy:#232320;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Space Grotesk",system-ui,sans-serif; color:var(--ink);
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:28px 28px;
+    overflow-x:hidden; transition:background-color .5s, color .5s;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  /* ---------- nav ---------- */
+  nav{position:sticky;top:0;z-index:50;background:var(--navbg);backdrop-filter:blur(6px);border-bottom:1px solid var(--cardline)}
+  .nav-in{display:flex;align-items:center;gap:10px;padding:12px 0;flex-wrap:wrap}
+  .logo-dot{width:14px;height:14px;border-radius:50%;background:var(--pink);border:2px solid var(--line);flex:none}
+  .nav-links{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .nav-links a{font-size:11px;font-weight:700;letter-spacing:.12em;padding:7px 12px;border-radius:999px;border:1.5px solid transparent;transition:.2s}
+  .nav-links a:hover{border-color:var(--line);transform:translateY(-1px)}
+  .nav-links a.active{background:var(--yellow);border-color:var(--line);color:#111}
+  .nav-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .icon-btn{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:700;background:#fff;color:#111;transition:.2s}
+  .icon-btn:hover{transform:rotate(-8deg) scale(1.08)}
+  .icon-btn.yt{background:var(--yellow)} .icon-btn.ig{background:var(--pink);color:#fff} .icon-btn.li{background:var(--mint)}
+  .theme-btn{font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.1em;padding:8px 13px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;transition:.2s}
+  .theme-btn:hover{transform:translateY(-1px)}
+  .contact-btn{background:var(--navy);color:#f2ede2;font-size:11px;font-weight:700;letter-spacing:.12em;padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);transition:.2s}
+  .contact-btn:hover{transform:translateY(-2px);box-shadow:3px 3px 0 var(--line)}
+
+  /* ---------- hero ---------- */
+  .hero{padding:56px 0 10px;text-align:center;position:relative}
+  .myname{font-family:"Caveat",cursive;font-size:28px;font-weight:600;transform:rotate(-3deg);display:inline-block}
+  .myname u{text-decoration:underline wavy var(--ink) 2px;text-underline-offset:4px}
+  .name-frame{
+    margin:10px auto 0;display:inline-block;position:relative;
+    border:3px solid var(--red);border-radius:28px;padding:6px 42px 10px;
+    background:var(--framebg);
+  }
+  .name-frame h1{font-family:"Anton",sans-serif;font-size:clamp(88px,19vw,196px);line-height:.95;letter-spacing:.01em;text-transform:uppercase;transition:transform .3s}
+  .name-frame h1:hover{transform:scale(1.015) rotate(-.5deg)}
+  .sticker{
+    position:absolute;font-size:11px;font-weight:700;letter-spacing:.08em;
+    padding:7px 12px;border-radius:999px;border:1.5px solid #111;color:#111;
+    box-shadow:2px 2px 0 rgba(0,0,0,.9);white-space:nowrap;z-index:2;transition:transform .2s;
+  }
+  .sticker:hover{transform:rotate(0deg) scale(1.08)!important}
+  .st-made{top:-14px;left:-8px;background:var(--mint);transform:rotate(-5deg)}
+  .st-sweat{top:-12px;right:-6px;background:var(--yellow);transform:rotate(4deg)}
+  .st-role{bottom:16px;left:-72px;background:var(--yellow);transform:rotate(-6deg)}
+  .st-city{bottom:26px;right:-72px;background:var(--mint);transform:rotate(5deg)}
+  .arrow{position:absolute;font-family:"Caveat",cursive;font-size:30px;z-index:2}
+  .arrow-l{bottom:34px;left:-46px;transform:rotate(24deg)}
+  .arrow-r{bottom:44px;right:-44px;transform:scaleX(-1) rotate(24deg)}
+  .open-line{margin-top:26px;font-size:12px;font-weight:700;letter-spacing:.14em;display:flex;align-items:center;justify-content:center;gap:8px}
+  .open-line .dot{width:8px;height:8px;border-radius:50%;background:var(--blue);display:inline-block}
+  .tagline{margin-top:30px;font-size:clamp(26px,4.6vw,44px);font-weight:700;line-height:1.12;letter-spacing:-.01em}
+  .target{display:inline-block;width:.78em;height:.78em;border-radius:50%;border:.14em solid var(--green);position:relative;vertical-align:-.06em}
+  .target::after{content:"";position:absolute;inset:0;margin:auto;width:.26em;height:.26em;border-radius:50%;background:var(--green)}
+  .asterisk{color:var(--pink);cursor:pointer;display:inline-block;transition:transform .5s cubic-bezier(.34,1.56,.64,1)}
+  .asterisk.spin{transform:rotate(180deg) scale(1.25)}
+  .cta-row{margin-top:26px}
+  .cta-btn{display:inline-flex;align-items:center;gap:10px;background:var(--navy);color:#f2ede2;font-size:12px;font-weight:700;letter-spacing:.14em;padding:13px 22px;border:1.5px solid var(--line);box-shadow:4px 4px 0 var(--line);transition:.2s}
+  .cta-btn:hover{transform:translate(-1px,-2px);box-shadow:6px 6px 0 var(--line)}
+  .cta-btn .sq{width:14px;height:14px;background:var(--blue);border-radius:2px;display:inline-block}
+  .squiggle{width:100%;height:26px;margin-top:44px;opacity:.5}
+  @media (max-width:760px){
+    .st-role{left:6px;bottom:-14px}.st-city{right:6px;bottom:-14px}
+    .arrow{display:none}.name-frame{padding:6px 22px 10px}
+  }
+
+  /* ---------- about ---------- */
+  .about{padding:40px 0 10px;position:relative}
+  .about-head{text-align:center;position:relative}
+  .about-me{font-family:"Caveat",cursive;font-size:22px;transform:rotate(-4deg);position:absolute;left:0;top:-6px}
+  .pill{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.06em;padding:8px 18px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:#111;box-shadow:2px 2px 0 rgba(0,0,0,.85)}
+  .about-grid{display:grid;grid-template-columns:210px 1fr 210px;gap:26px;align-items:start;margin-top:30px}
+  .polaroid{background:#fff;padding:12px 12px 34px;box-shadow:0 8px 24px rgba(0,0,0,.25);position:relative;border:1px solid rgba(0,0,0,.08);transition:transform .25s ease-out;will-change:transform}
+  .polaroid img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;background:#eee}
+  .polaroid figcaption{font-family:"Caveat",cursive;font-size:19px;text-align:center;margin-top:10px;color:#444}
+  .polaroid.left{transform:rotate(-4deg)} .polaroid.right{transform:rotate(3deg)}
+  .tape{position:absolute;width:74px;height:22px;background:rgba(255,210,63,.55);top:-10px;left:50%;transform:translateX(-50%) rotate(-4deg);border-left:1px dashed rgba(0,0,0,.15);border-right:1px dashed rgba(0,0,0,.15);z-index:2}
+  .tape.mint{background:rgba(168,230,207,.6)} .tape.pink{background:rgba(255,111,165,.45)}
+  .bio{font-family:"Caveat",cursive;font-size:clamp(24px,3.2vw,32px);line-height:1.35;font-weight:600;text-align:center}
+  .bio .hl{background:linear-gradient(transparent 62%, rgba(255,210,63,.65) 62%)}
+  [data-theme="dark"] .bio .hl{background:linear-gradient(transparent 62%, rgba(255,210,63,.35) 62%)}
+  .skills{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:26px}
+  .skill{font-size:13px;font-weight:700;padding:9px 14px;border:1.5px solid #111;color:#111;box-shadow:3px 3px 0 rgba(0,0,0,.85);display:flex;gap:8px;align-items:center;transition:transform .2s;cursor:pointer;user-select:none}
+  .skill:hover{transform:rotate(0deg) translateY(-3px)!important}
+  .skill.bounce{animation:bounce .5s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes bounce{0%{transform:scale(1)}40%{transform:scale(1.12) rotate(-2deg)}100%{transform:scale(1)}}
+  .skill.y{background:var(--yellow);transform:rotate(-2deg)} .skill.g{background:var(--green);transform:rotate(1.5deg);color:#fff}
+  .skill.p{background:var(--pink);transform:rotate(-1deg);color:#fff} .skill.b{background:var(--blue);transform:rotate(2deg);color:#fff}
+  @media (max-width:860px){.about-grid{grid-template-columns:1fr 1fr}.bio{grid-column:1/-1;order:-1}.about-me{position:static;display:block;margin-bottom:8px}}
+
+  /* ---------- projects ---------- */
+  .projects{padding:60px 0 30px}
+  .proj-tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:-1px;position:relative;z-index:2}
+  .proj-tab{font-size:11px;font-weight:700;letter-spacing:.1em;padding:9px 16px;border:1.5px solid var(--line);border-bottom:none;background:var(--paper);color:var(--ink);clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%)}
+  .proj-tab.hl{background:var(--blue);color:#fff}
+  .proj-card{
+    border:1.5px solid var(--line);padding:34px 30px 30px;position:relative;overflow:hidden;
+    clip-path:polygon(0 0,100% 0,100% calc(100% - 26px),calc(100% - 26px) 100%,0 100%);
+    display:grid;grid-template-columns:1fr 1.1fr;gap:28px;align-items:center;transition:transform .25s;
+  }
+  .proj-card:hover{transform:translateY(-3px)}
+  .proj-card.dark{background:#101014;color:#fff}
+  .proj-card.sun{background:var(--yellow);color:#111}
+  .proj-date{font-size:11px;font-weight:700;letter-spacing:.14em;opacity:.75}
+  .proj-card h3{font-size:clamp(34px,5.4vw,58px);font-weight:700;letter-spacing:-.02em;margin:10px 0 8px;line-height:1.02}
+  .proj-card p{font-size:14px;line-height:1.55;opacity:.85;max-width:46ch}
+  .brand-pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .brand-pills span{font-size:11px;font-weight:700;letter-spacing:.06em;padding:6px 11px;border-radius:999px;border:1.5px solid currentColor;opacity:.9}
+  .view{display:inline-block;margin-top:18px;font-size:12px;font-weight:700;letter-spacing:.14em;border-bottom:2px solid currentColor;padding-bottom:2px;transition:.2s}
+  .view:hover{letter-spacing:.2em}
+  .soon{display:inline-block;margin-top:18px;font-size:11px;font-weight:700;letter-spacing:.14em;padding:8px 14px;border:1.5px dashed currentColor;border-radius:999px;opacity:.8}
+  .proj-img{border:1.5px solid #111;box-shadow:6px 6px 0 rgba(0,0,0,.25);background:#fff;padding:8px;transform:rotate(1.5deg);transition:.3s}
+  .proj-img:hover{transform:rotate(0deg) scale(1.015)}
+  .proj-img img{width:100%;display:block;aspect-ratio:16/10;object-fit:cover}
+  .proj-img .cap{font-family:"Caveat",cursive;font-size:18px;text-align:center;padding-top:6px;color:#444}
+  .proj-spacer{height:26px}
+  @media (max-width:760px){.proj-card{grid-template-columns:1fr}}
+
+  /* ---------- footer ---------- */
+  footer{padding:40px 0 60px;text-align:center}
+  .foot-big{font-family:"Anton",sans-serif;font-size:clamp(44px,9vw,84px);line-height:1;text-transform:uppercase}
+  .foot-big span{color:var(--pink)}
+  .contact-row{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:22px}
+  .contact-pill{font-size:13px;font-weight:700;padding:11px 20px;border:1.5px solid var(--line);border-radius:999px;transition:.2s;display:inline-flex;gap:8px;align-items:center}
+  .contact-pill:hover{transform:translateY(-2px);box-shadow:3px 3px 0 var(--line)}
+  .contact-pill.mail{background:var(--yellow);color:#111} .contact-pill.ig{background:var(--pink);color:#fff} .contact-pill.li{background:var(--mint);color:#111}
+  .foot-note{margin-top:26px;font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <span class="logo-dot"></span>
+    <div class="nav-links">
+      <a href="#top" class="active">HOME</a>
+      <a href="#about">ABOUT</a>
+      <a href="#work">WORK</a>
+    </div>
+    <div class="nav-right">
+      <a class="icon-btn yt" href="https://www.behance.net/harsh19_" target="_blank" rel="noreferrer" title="Behance">B</a>
+      <a class="icon-btn ig" href="https://instagram.com/harshmotion" target="_blank" rel="noreferrer" title="Instagram">◎</a>
+      <a class="icon-btn li" href="https://www.linkedin.com/in/harshkumarsinghmotiondesigner/" target="_blank" rel="noreferrer" title="LinkedIn">in</a>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle dark mode">☾ DARK</button>
+      <a class="contact-btn" href="#contact">♥ CONTACT</a>
+    </div>
+  </div>
+</nav>
+
+<main id="top" class="wrap">
+  <!-- HERO -->
+  <section class="hero">
+    <div><span class="myname">my name is</span></div>
+    <div style="position:relative;display:inline-block">
+      <div class="name-frame">
+        <span class="sticker st-made">MADE THINGS</span>
+        <span class="sticker st-sweat">SWEAT THE DETAILS</span>
+        <h1>Harsh</h1>
+        <span class="sticker st-role">Motion Designer</span>
+        <span class="sticker st-city">Noida, India</span>
+        <span class="arrow arrow-l">↖</span>
+        <span class="arrow arrow-r">↗</span>
+      </div>
+    </div>
+    <div class="open-line"><span class="dot"></span> OPEN TO NEW WORK AND GOOD PROBLEMS</div>
+    <p class="tagline">I move so you<br />could run. <span class="target"></span><span class="asterisk" id="asterisk" title="click me">✳</span></p>
+    <div class="cta-row"><a class="cta-btn" href="#contact"><span class="sq"></span> CONTACT ME</a></div>
+    <svg class="squiggle" viewBox="0 0 1000 26" preserveAspectRatio="none"><path d="M0 13 Q 125 0 250 13 T 500 13 T 750 13 T 1000 13" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".5"/></svg>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="about-head">
+      <span class="about-me">about me!</span>
+      <span class="pill">what's up</span>
+    </div>
+    <div class="about-grid">
+      <figure class="polaroid left" data-tilt>
+        <span class="tape mint"></span>
+        <img src="images/portrait.jpg" alt="Illustrated portrait" />
+        <figcaption>that's me</figcaption>
+      </figure>
+      <div>
+        <p class="bio">I'm a motion designer at Inshorts who gets a little too excited about making complicated things feel simple. <span class="hl">I care about the small details,</span> the timing nobody notices, and shipping work that genuinely makes someone's day easier.</p>
+        <div class="skills">
+          <span class="skill y">✦ Motion Design</span>
+          <span class="skill g">◐ Interaction Design</span>
+          <span class="skill p">♥ Video Editing</span>
+          <span class="skill b">✦ UI Motion</span>
+        </div>
+      </div>
+      <figure class="polaroid right" data-tilt>
+        <span class="tape pink"></span>
+        <img src="images/workspace.jpg" alt="At work" />
+        <figcaption>my workspace</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="projects" id="work">
+    <div class="proj-tabs">
+      <span class="proj-tab hl">✦ PROJECT 01</span>
+    </div>
+    <article class="proj-card dark">
+      <div>
+        <div class="proj-date">● MOTION · 2026</div>
+        <h3>Motion Design Portfolio</h3>
+        <p>Scratch work and AI experiments, cut into one reel — the motion I'm building right here.</p>
+        <a class="view" href="https://www.behance.net/gallery/231756993/Portfolio-2026" target="_blank" rel="noreferrer">VIEW PROJECT →</a>
+      </div>
+      <div class="proj-img">
+        <img src="https://mir-s3-cdn-cf.behance.net/project_modules/max_632_webp/08dfbe231756993.68a1bb3d00cbf.png" alt="Motion Portfolio 2026" />
+        <div class="cap">motion, everywhere</div>
+      </div>
+    </article>
+
+    <div class="proj-spacer"></div>
+    <div class="proj-tabs">
+      <span class="proj-tab">✦ PROJECT 02</span>
+    </div>
+    <article class="proj-card sun">
+      <div>
+        <div class="proj-date">● PRODUCT DESIGN</div>
+        <h3>Little Later</h3>
+        <p>The whole app, broken down — save any link into small folders and be reminded to revisit it. Demo, social creatives and videos coming to Behance soon.</p>
+        <span class="soon">FULL BREAKDOWN SOON</span>
+      </div>
+      <div class="proj-img">
+        <div style="aspect-ratio:16/10;display:grid;place-items:center;background:linear-gradient(135deg,#a8e6cf,#ffd23f);font-family:'Caveat',cursive;font-size:26px;color:#333">📱 app breakdown coming soon</div>
+        <div class="cap">save it, revisit it</div>
+      </div>
+    </article>
+
+    <div class="proj-spacer"></div>
+    <div class="proj-tabs">
+      <span class="proj-tab hl">✦ PROJECT 03</span>
+    </div>
+    <article class="proj-card dark">
+      <div>
+        <div class="proj-date">● SPEC ADS</div>
+        <h3>Promotional Spec Ads</h3>
+        <p>Promotional films made for practice, for fun, and to prove a point — each brand reimagined in motion.</p>
+        <div class="brand-pills">
+          <span>Swish</span><span>Perplexity</span><span>Stable Money</span><span>District</span><span>Threatcop</span><span>Nutrabay</span>
+        </div>
+        <span class="soon">FULL BREAKDOWN SOON</span>
+      </div>
+      <div class="proj-img">
+        <div style="aspect-ratio:16/10;display:grid;place-items:center;background:linear-gradient(135deg,#ffb3cd,#2b6cff);font-family:'Caveat',cursive;font-size:26px;color:#fff">🎬 spec films coming soon</div>
+        <div class="cap">brands, reimagined</div>
+      </div>
+    </article>
+
+    <div class="proj-spacer"></div>
+    <div class="proj-tabs">
+      <span class="proj-tab">✦ PROJECT 04</span>
+    </div>
+    <article class="proj-card sun">
+      <div>
+        <div class="proj-date">● AI FILM</div>
+        <h3>AI Shortfilm</h3>
+        <p>Full breakdown — a short film built entirely with free AI tools. Zero budget, full imagination.</p>
+        <span class="soon">FULL BREAKDOWN SOON</span>
+      </div>
+      <div class="proj-img">
+        <div style="aspect-ratio:16/10;display:grid;place-items:center;background:linear-gradient(135deg,#ffd23f,#a8e6cf);font-family:'Caveat',cursive;font-size:26px;color:#333">🎥 frames coming soon</div>
+        <div class="cap">made with nothing, almost</div>
+      </div>
+    </article>
+
+    <div class="proj-spacer"></div>
+    <div class="proj-tabs">
+      <span class="proj-tab hl">✦ PROJECT 05</span>
+    </div>
+    <article class="proj-card dark">
+      <div>
+        <div class="proj-date">● DOCUMENTARY</div>
+        <h3>Vietnam Project</h3>
+        <p>Full breakdown — a travel documentary cut, shot and edited as a cinematic motion piece. Coming to Behance soon.</p>
+        <span class="soon">FULL BREAKDOWN SOON</span>
+      </div>
+      <div class="proj-img">
+        <div style="aspect-ratio:16/10;display:grid;place-items:center;background:linear-gradient(135deg,#3ecf6e,#2b6cff);font-family:'Caveat',cursive;font-size:26px;color:#fff">✈ film still coming soon</div>
+        <div class="cap">on the road</div>
+      </div>
+    </article>
+  </section>
+
+  <!-- FOOTER / CONTACT -->
+  <footer id="contact">
+    <p class="foot-big">Have an idea<br />in motion<span>?</span></p>
+    <div class="contact-row">
+      <a class="contact-pill mail" href="mailto:Harshksingh100@gmail.com">✉ Harshksingh100@gmail.com</a>
+      <a class="contact-pill ig" href="https://instagram.com/harshmotion" target="_blank" rel="noreferrer">◎ @harshmotion</a>
+      <a class="contact-pill li" href="https://www.linkedin.com/in/harshkumarsinghmotiondesigner/" target="_blank" rel="noreferrer">in LinkedIn ↗</a>
+    </div>
+    <p class="foot-note">© 2026 · Noida, India · Made with too much attention to detail</p>
+  </footer>
+</main>
+
+<script>
+  // ---- Dark mode (saved, and it looks right: stickers stay loud, paper goes dark) ----
+  const themeBtn = document.getElementById('themeBtn');
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    themeBtn.textContent = t === 'dark' ? '☀ LIGHT' : '☾ DARK';
+    try { localStorage.setItem('harsh-theme', t); } catch(e){}
+  }
+  let saved = null;
+  try { saved = localStorage.getItem('harsh-theme'); } catch(e){}
+  applyTheme(saved || 'light');
+  themeBtn.addEventListener('click', () => {
+    applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  // ---- Nav active state follows scroll ----
+  const links = document.querySelectorAll('.nav-links a');
+  const secs = ['top','about','work'];
+  window.addEventListener('scroll', () => {
+    let cur = 'top';
+    secs.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().top < 160) cur = id;
+    });
+    links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur));
+  }, { passive: true });
+
+  // ---- Polaroid tilt (mouse only) ----
+  if (window.matchMedia('(pointer:fine)').matches) {
+    document.querySelectorAll('[data-tilt]').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const r = card.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width - 0.5;
+        const y = (e.clientY - r.top) / r.height - 0.5;
+        card.style.transform = `perspective(700px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) scale(1.02)`;
+      });
+      card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+    });
+  }
+
+  // ---- Clickable fun: asterisk spins, skills bounce ----
+  document.getElementById('asterisk').addEventListener('click', function(){
+    this.classList.toggle('spin');
+  });
+  document.querySelectorAll('.skill').forEach(s => {
+    s.addEventListener('click', () => {
+      s.classList.remove('bounce'); void s.offsetWidth; s.classList.add('bounce');
+    });
+  });
+</script>
+</body>
 </html>
