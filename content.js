@@ -74,7 +74,7 @@ const CONTENT = {
       placeholder: "🎥 frames coming soon"
     },
     {
-      title: "Vietnam Project",
+      title: "Vietnam Documentary",
       text: "Full breakdown — a travel documentary cut, shot and edited as a cinematic motion piece. Coming to Behance soon.",
       link: "",
       image: "",
