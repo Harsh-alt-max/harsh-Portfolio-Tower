@@ -19,7 +19,8 @@ const CONTENT = {
   // ---------- HERO ----------
   // Line 1 of the big tagline. "could run." follows it automatically,
   // and the word below gets yellow + italic + the white scribble ring.
-  taglineBefore: "I move so you could",
+  // (So line 1 should END before "could" — e.g. "I move so you".)
+  taglineBefore: "I move so you",
   highlight: "run",
 
   // ---------- ABOUT ----------
@@ -73,7 +74,7 @@ const CONTENT = {
       placeholder: "🎥 frames coming soon"
     },
     {
-      title: "Vietnam Documentary",
+      title: "Vietnam Project",
       text: "Full breakdown — a travel documentary cut, shot and edited as a cinematic motion piece. Coming to Behance soon.",
       link: "",
       image: "",
