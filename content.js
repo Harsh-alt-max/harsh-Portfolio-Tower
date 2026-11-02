@@ -68,8 +68,8 @@ const CONTENT = {
     {
       title: "AI Shortfilm",
       text: "Full breakdown — a short film built entirely with free AI tools. Zero budget, full imagination. Kind off Low quality but high in emotions.",
-      link: "",
-      image: "",
+      link: "https://www.behance.net/gallery/257904229/The-8-AM-Metro-Shortfilm-Full-Project-Breakdown",
+      image: "https://mir-s3-cdn-cf.behance.net/projects/404/efa2f5257904229.Y3JvcCwxMzg4LDEwODYsMzAsMA.png",
       caption: "made with nothing, almost",
       placeholder: "🎥 frames coming soon"
     },
