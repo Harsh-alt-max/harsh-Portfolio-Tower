@@ -60,8 +60,8 @@ const CONTENT = {
     {
       title: "Promotional Spec Ads",
       text: "Promotional ads made for practice, for fun, and to experiment faster ships.",
-      link: "",
-      image: "",
+      link: "https://www.behance.net/gallery/257947733/Spec-Advertisement-Experimental",
+      image: "https://mir-s3-cdn-cf.behance.net/projects/404/9bb1d2257947733.Y3JvcCwyMTIwLDE2NTksMCww.png",
       caption: "brands, reimagined",
       placeholder: "🎬 spec films coming soon"
     },
