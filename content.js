@@ -59,7 +59,7 @@ const CONTENT = {
     },
     {
       title: "Promotional Spec Ads",
-      text: "Promotional AI ads made for practice, for fun, and to experiment faster ships.",
+      text: "Promotional ads made for practice, for fun, and to experiment faster ships.",
       link: "",
       image: "",
       caption: "brands, reimagined",
